@@ -92,11 +92,11 @@ function setHeaders(serverId) {
 }
 
 function decode(buffer) {
-  return iconv.decode(Buffer.from(buffer, 'binary'), 'cp1251');
+  return iconv.decode(Buffer.from(buffer, 'binary'), 'cp1251')
 }
 
 
-function saveResult(buf, fileName = './test/test.html') {
+function saveResult(buf, fileName = './test/test.json') {
   fs.outputFile(fileName, buf);
   return buf;
 }
@@ -107,20 +107,25 @@ function showResult(res) {
 }
 
 function getItems(html, itemType) {
-  let $ = cheerio.load(html),
+  let $ = cheerio.load(html, { decodeEntities: false }),
     content = '';
   switch (itemType) {
     case '0':
-      for (itemType in FILTERS.type) {
-        if (itemType !== 'all')
-          content += $(`#group_${FILTERS.type[itemType]}`).html()
+      for (type in FILTERS.type) {
+        if (type !== 'all')
+          content += $(`#group_${FILTERS.type[type]}`).find('tbody').html()
       }
       break;
     default:
-      content = $(`#group_${FILTERS.type[itemType]}`).html()
+      content = $(`#group_${FILTERS.type[itemType]}`).find('tbody').html()
       break;
   }
-  return $('#content').html();
+  let parsed = content.replace(/<tr>\s*<td.+?src=["'](.*?)"><\/td>\s*<td.*?>\s*?<span.*?><a.*?["'](.*?)["'].*?>(.*?)<\/a>.*?<\/td>\s*?<td.*?data-i=["'](\d+)?["']>.*?alt=["'](.*?)["'].*?data-i=["'](\d*?)["'].*?<\/td><\/tr>/gi,
+  '"$3":{"imgsrc":"$1","link":"$2","name":"$3","price":$4,"grade":"$5","lastSeen":$6},')
+  parsed = parsed.substring(0, parsed.length - 2)
+  parsed = JSON.parse(`{${parsed}}`)
+  console.log(parsed)
+  return JSON.stringify(parsed)
 }
 
 let options = {

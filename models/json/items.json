@@ -1,0 +1,52 @@
+items: {
+  "weapon": {
+    "id": "",
+    "modification": "",
+    "enchant": "",
+    "attribute": "",
+    "price": "",
+    "last_seen": "",
+    "town": ""
+  },
+  "armor": {
+    "id": "",
+    "modification": "",
+    "enchant": "",
+    "attributes": [],
+    "price": "",
+    "last_seen": "",
+    "town": ""
+  },
+  "jewelry": {
+    "id": "",
+    "modification": "",
+    "enchant": "",
+    "attributes": [],
+    "price": "",
+    "last_seen": "",
+    "town": ""
+  },
+  "recipes": {
+    "id": "",
+    "price": "",
+    "quantity": "",
+    "last_seen": "",
+    "town": ""
+  },
+  "books": {
+    "id": "",
+    "price": "",
+    "quantity": "",
+    "last_seen": "",
+    "town": ""
+  },
+  "other": {
+    "id": "",
+    "modification": "",
+    "enchant": "",
+    "price": "",
+    "quantity": "",
+    "last_seen": "",
+    "town": ""
+  }
+}

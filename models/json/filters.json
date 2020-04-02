@@ -1,0 +1,22 @@
+filters: {
+  "weapon": {
+    "grade": "",
+    "class": "",
+    "type": ""
+  },
+  "armor": {
+    "grade": "",
+    "type": "",
+    "slot": ""
+  },
+  "jewelry": {
+    "grade": "",
+    "type": ""
+  },
+  "recipes": {
+    "grade": "",
+    "lvl": ""
+  },
+  "books": {},
+  "other": {}
+}

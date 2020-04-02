@@ -1,0 +1,5 @@
+{
+  "port": 5000,
+  "mongoUrl": "mongodb+srv://guppy:HadEexKGsZCALzmM@l2on-market-jinuv.mongodb.net/l2_db?retryWrites=true&w=majority",
+  "baseUrl": "http://localhost:5000"
+}

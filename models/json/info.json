@@ -1,0 +1,52 @@
+info: {
+  "weapon": {
+    "id": "",
+    "title": "",
+    "img": "",
+    "link": "",
+    "grade": "",
+    "class": "",
+    "type": "",
+    "modification": ""
+  },
+  "armor": {
+    "id": "",
+    "title": "",
+    "img": "",
+    "link": "",
+    "grade": "",
+    "type": "",
+    "slot": "",
+    "modification": ""
+  },
+  "jewelry": {
+    "id": "",
+    "title": "",
+    "img": "",
+    "link": "",
+    "grade": "",
+    "type": "",
+    "modification": ""
+  },
+  "recipes": {
+    "id": "",
+    "title": "",
+    "img": "",
+    "link": "",
+    "grade": "",
+    "lvl": ""
+  },
+  "books": {
+    "id": "",
+    "title": "",
+    "img": "",
+    "link": ""
+  },
+  "other": {
+    "id": "",
+    "title": "",
+    "img": "",
+    "link": "",
+    "modification": ""
+  }
+}

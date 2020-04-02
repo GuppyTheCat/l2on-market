@@ -28,13 +28,10 @@ function showResult(res) {
 }
 
 function htmlToJson(html) {
-    /* return html.replace(/<tr>\s*<td.+?src=["'](.*?)["']><\/td>\s*<td.*?>\s*?<span.*?><a.*?["'](.*?)["'].*?>(.*?)<\/a>.*?<\/td>\s*?<td.*?data-i=["'](\d+)?["']>.*?alt=["'](.*?)["'].*?data-i=["'](\d*?)["'].*?<\/td><\/tr>/gi,
-        '"$3":{"imgsrc":"http://l2on.net$1","link":"$2","name":"$3","price":$4,"grade":"$5","lastSeen":$6},') */
-        /* return html.replace(/<tr>\s*<td\sclass=["']icon-cell["']><img\ssrc=["'](.*?)["']><\/td>\s*<td\sdata-i=["']\d+["']\sclass=["']item["']>\s*<span\sclass=["']l2item["']><a\shref=["'](.*?)["']\sdata-item=["']\d+["']>(.*?)<\/a><\/span><\/td>\s*<td\sclass=["'].+?["']\sdata-i=["']\d+["']>[\d\s]+?<\/td><td.+?data-i=["']\d+["']>.*?<\/td><td\sclass=["'].*?["']\sdata-i=["'](\d+)["']>.+?<\/td><\/tr>/gi,
-        '"$3":{"imgsrc":"http://l2on.net$1","link":"$2","id":"$3","name":"$4","lastSeen":$5},') */
-        return html.replace(/<tr>\s*<td\sclass=["']icon-cell["']><img\ssrc=["'](.*?)["']><\/td>\s*<td\sdata-i=["']\d+["']\sclass=["']item["']>\s*<span\sclass=["']l2item["']><a\shref=["'](.*?)["']\sdata-item=["'](\d+)\+?\d*["']>(.*?)<\/a>(\s<span class="add">.*?<\/span>)?(\s*<span\sclass=["']enchant["']>\+\d+<\/span>)?<\/span><\/td>\s*<td\sclass=["'].+?["']\sdata-i=["']\d+["']>[\d\s]+?<\/td><td.+?data-i=["']\d+["']>.*?<\/td><td\sclass=["'].*?["']\sdata-i=["'](\d+)["']>.+?<\/td><\/tr>/gi,
-        '"$3":{"imgsrc":"http://l2on.net$1","link":"$2","id":"$3","name":"$4","lastSeen":$7},')
-    }
+                     {/* <tr>\s*<td\sclass=["']icon-cell["']><img\ssrc=["'](.*?)["']><\/td>\s*<td\sdata-i=["']\d+["']\sclass=["']item["']>\s*<span\sclass=["']l2item["']><a\shref=["'](.*?)["']\sdata-item=["'](\d+)\+?\d*["']>(.*?)<\/a>(\s<span class="add">.*?<\/span>)?(\s*<span\sclass=["']enchant["']>\+\d+<\/span>)?(\s<span\sclass=["']attr["']\stitle=["'].+?["']>(<img\ssrc=["'].+?["']\salt=["'].+?["']>\s\d+\s*)+<\/span>)?<\/span><\/td>\s*<td\sclass=["'].+?["']\sdata-i=["']\d+["']>[\d\s]+?<\/td><td.+?data-i=["']\d+["']>.*?<\/td><td\sclass=["'].*?["']\sdata-i=["'](\d+)["']>.+?<\/td><\/tr></span> */}
+    return html.replace(/<tr>\s*<td\sclass=["']icon-cell["']><img\ssrc=["'](.*?)["']><\/td>\s*<td\sdata-i=["']\d+["']\sclass=["']item["']>\s*<span\sclass=["']l2item["']><a\shref=["'](.*?)["']\sdata-item=["'](\d+)\+?\d*["']>(.*?)<\/a>(\s<span class="add">.*?<\/span>)?(\s*<span\sclass=["']enchant["']>\+\d+<\/span>)?<\/span><\/td>\s*<td\sclass=["'].+?["']\sdata-i=["']\d+["']>[\d\s]+?<\/td><td.+?data-i=["']\d+["']>.*?<\/td><td\sclass=["'].*?["']\sdata-i=["'](\d+)["']>.+?<\/td><\/tr>/gi,
+        '"$3":{"id":"$3","name":"$4","img":"http://l2on.net$1","link":"$2","lastSeen":$7},')
+}
 
 function getItems(html) {
     let $ = cheerio.load(html, { decodeEntities: false }),
@@ -46,13 +43,13 @@ function getItems(html) {
             let content = $(`#group_${filters.type[type]}`).find('tbody').html()
             if (!content) continue
             content = htmlToJson(content)
-            console.log(content.length + "\n");
             content = content.substring(0, content.length - 2)
             content = JSON.parse(`{${content}}`)
             content = JSON.stringify(content)
             items.push({ type, content })
         }
     }
+    console.log(items)
     return items
 }
 

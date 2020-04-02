@@ -8,7 +8,6 @@ router.get('/', async (req, res) => {
         /* const server = req.headers.server */
         const server = req.headers.server
         let items = getMarketItems(server)
-        console.log(items)
     } catch (e) {
         res.status(500).json({ message: 'Что-то пошло не так, попробуйте снова' })
     }

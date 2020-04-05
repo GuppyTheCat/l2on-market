@@ -2,6 +2,7 @@ const fs = require('fs-extra')
 const fetch = require('node-fetch')
 const iconv = require('iconv-lite')
 const cheerio = require('cheerio')
+const moment = require('moment')
 const { filters, servers } = require('./constants')
 
 let parseUrl = 'http://l2on.net/?c=market&a=pulse&q=&type=0'
@@ -17,14 +18,16 @@ function decode(buffer) {
 }
 
 
-function saveResult(buf, fileName = './test/test.json') {
-    fs.outputFile(fileName, buf);
-    return buf;
+function saveResult(buf, fileName = 'NewFile') {
+    let date = moment().format('LTS').replace(/[\:\s]/g, '-')
+    fileName = `./test/${fileName}_${date}.json`
+    fs.outputFile(fileName, buf)
+    return buf
 }
 
 function showResult(res) {
-    console.log(res);
-    return res;
+    console.log(res)
+    return res
 }
 
 function htmlToJson(html) {
@@ -44,7 +47,7 @@ function htmlToJson(html) {
 
     }
     log = formatLogAttribute(log)
-    console.log(log)
+    /* console.log(log) */
 
     output = formatOutputAttribute(output)
     return output
@@ -53,17 +56,18 @@ function htmlToJson(html) {
 function getItems(html) {
     let $ = cheerio.load(html, {
         decodeEntities: false
-    }),
-        items = []
-
+    })
+    let items = []
+    let log = ''
     for (type in filters.type) {
         if (type !== 'all') {
-            console.log(type)
+
+            log += `\n-----${type}-----\n`
             let content = $(`#group_${filters.type[type]}`).find('tbody').html()
             if (!content) continue
             content = htmlToJson(content)
             content = content.substring(0, content.length - 2)
-            saveResult(`{${content}}`, fileName = './test/beforeParse.json')
+            log += `{${content}}`
             content = JSON.parse(`{${content}}`)
             content = JSON.stringify(content)
             items.push({
@@ -72,20 +76,17 @@ function getItems(html) {
             })
         }
     }
-    console.log(items)
+    saveResult(log, `parseLog`)
     return items
 }
 
 function getMarketItems(serverId) {
 
-    fetch(parseUrl, {
-        headers: setHeaders(serverId)
-    })
+    fetch(parseUrl, { headers: setHeaders(serverId) })
         .then(res => res.buffer())
         .then(res => decode(res))
         .then(res => getItems(res))
-        /* .then(res => showResult(res)) */
-        .then(res => saveResult(res))
+        .then(console.log(`<${servers[serverId].name} parsed>`))
         .catch(err => console.error('Что-то пошло не так: ', err));
 }
 

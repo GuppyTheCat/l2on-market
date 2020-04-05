@@ -1,46 +1,40 @@
 module.exports = {
     servers: {
-        classic: {
-            gran_kain: {
-                title: 'Gran Kain',
-                id: '1092'
-            },
-            shillien: {
-                title: 'Shillien',
-                id: '1094'
-            }
+        12: {
+            name: 'Hatos',
+            project: 'Main'
         },
-        main: {
-            blackbird: {
-                title: 'Blackbird',
-                id: '45'
-            },
-            elcardia: {
-                title: 'Elcardia',
-                id: '27'
-            },
-            hatos: {
-                title: 'Hatos',
-                id: '12'
-            }
+        27: {
+            name: 'Elcardia',
+            project: 'Main'
         },
-        essence: {
-            silver: {
-                title: 'Silver',
-                id: '3061'
-            },
-            emerald: {
-                title: 'Emerald',
-                id: '3062'
-            },
-            crimson: {
-                title: 'Crimson',
-                id: '3501'
-            },
-            scarlet: {
-                title: 'Scarlet',
-                id: '3502'
-            }
+        45: {
+            name: 'Blackbird',
+            project: 'Main'
+        },
+        1092: {
+            name: 'Gran Kain',
+            project: 'Classic'
+        },
+        1094: {
+            name: 'Shillien',
+            project: 'Classic'
+        },
+        3501: {
+            name: 'Crimson',
+            project: 'Essence'
+        },
+        3502: {
+            name: 'Scarlet',
+            project: 'Essence'
+        },
+        3061: {
+            name: 'Silver',
+            project: 'Essence'
+        },
+        3062: {
+            name: 'Emerald',
+            project: 'Essence'
         }
     },
 

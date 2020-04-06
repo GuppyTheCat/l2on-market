@@ -34,6 +34,7 @@ function htmlToJson(html) {
     /*<tr>\s*<td\sclass=["']icon-cell["']><img\ssrc=["'](.*?)["']><\/td>\s*<td\sdata-i=["']\d+["']\sclass=["']item["']>\s*<span\sclass=["']l2item["']><a\shref=["'](.*?)["']\sdata-item=["'](\d+)\+?\d*["']>(.*?)<\/a>(?:\s<span class="add">(.*?)<\/span>)?(?:\s*<span\sclass=["']enchant["']>(\+\d+)<\/span>)?(?:\s<span\sclass=["']attr["']\stitle=["'].+?["']>((?:<img\ssrc=["'].+?["']\salt=["'].+?["']>\s\d+\s*)+)<\/span>)?<\/span><\/td>\s*<td\sclass=["'].+?["']\sdata-i=["']\d+["']>[\d\s]+?<\/td><td.+?data-i=["']\d+["']>.*?<\/td>(?:<td\sclass=["'].*?["']\sdata-i=["']\d+["']><img src=["'].+?["']\sclass=["']grade["']\salt=["'](.+?)["']><\/td>)?<td\sclass=["'].*?["']\sdata-i=["'](\d+)["']>.+?<\/td><\/tr> */
     let reg = new RegExp(`<tr>\\s*<td\\sclass=["']icon-cell["']><img\\ssrc=["'](.*?)["']><\\/td>\\s*<td\\sdata-i=["']\\d+["']\\sclass=["']item["']>\\s*<span\\sclass=["']l2item["']><a\\shref=["'](.*?)["']\\sdata-item=["'](\\d+)\\+?\\d*["']>(.*?)<\\/a>(?:\\s<span class="add">(.*?)<\\/span>)?(?:\\s*<span\\sclass=["']enchant["']>(\\+\\d+)<\\/span>)?(?:\\s<span\\sclass=["']attr["']\\stitle=["'].+?["']>((?:<img\\ssrc=["'].+?["']\\salt=["'].+?["']>\\s\\d+\\s*)+)<\\/span>)?<\\/span><\\/td>\\s*<td\\sclass=["'].+?["']\\sdata-i=["']\\d+["']>[\\d\\s]+?<\\/td><td.+?data-i=["']\\d+["']>.*?<\\/td>(?:<td\\sclass=["'].*?["']\\sdata-i=["']\\d+["']><img\\ssrc=["'].+?["']\\sclass=["']grade["']\\salt=["'](.+?)["']><\\/td>)?<td\\sclass=["'].*?["']\\sdata-i=["'](\\d+)["']>.+?<\\/td><\\/tr>`, 'gi')
     let log = html.replace(reg, 'id:\t\t\t$3\nname:\t\t$4\nimg:\t\thttp://l2on.net$1\nlink:\t\t$2\nadd:\t\t$5\nenchant:\t\t$6\nattribute:\t\t$7\ngrade:\t\t$8\nlastSeen:\t\t$9\n--------------------------------------------------------------------------------\n')
+    /* let output = html.replace(reg, '"$3":{"id":"$3","name":"$4","img":"http://l2on.net$1","link":"$2","add":"$5","enchant":"$6","attribute":"$7","grade":"$8","lastSeen":"$9"},') */
     let output = html.replace(reg, '"$3":{"id":"$3","name":"$4","img":"http://l2on.net$1","link":"$2","add":"$5","enchant":"$6","attribute":"$7","grade":"$8","lastSeen":"$9"},')
 
     function formatOutputAttribute(input) {
@@ -53,10 +54,12 @@ function htmlToJson(html) {
     return output
 }
 
+function load(html) {
+    return cheerio.load(html, { decodeEntities: false })
+}
+
 function getItems(html) {
-    let $ = cheerio.load(html, {
-        decodeEntities: false
-    })
+    let $ = load(html)
     let items = []
     let log = ''
     for (type in filters.type) {
@@ -69,24 +72,74 @@ function getItems(html) {
             content = content.substring(0, content.length - 2)
             log += `{${content}}`
             content = JSON.parse(`{${content}}`)
-            content = JSON.stringify(content)
             items.push({
                 type,
                 content
             })
+            content = JSON.stringify(content)
         }
     }
     saveResult(log, `parseLog`)
+    saveResult(JSON.stringify(items), `itemsLog`)
     return items
 }
 
+function getOffersHeaders($) {
+    let headers = $('#group_sell').find('thead').html()
+        .replace(/<tr>\s|\s<\/tr>/g, "")
+        .replace(/<th.*?>(.*?)<\/th>\s*/g, "$1\n")
+        .split("\n")
+    headers.pop()
+    headers.shift()
+    console.log(headers)
+    return headers
+}
+
+function getOffersBodies($) {
+    let offers = $('#group_sell').find('tbody').html()
+        .match(/<tr\sclass=["']shop-(?:\d+).*?["']>\s(?:(?:.+\s)+?)<\/tr>/g)
+    // console.log(offers)
+    for (let offer of offers) {
+        // console.log(offer)
+        let offerId = offer.replace(/<tr\sclass=["']shop-(\d+).*?["']>\n(?:(?:.+\s)+?)<\/tr>/g, '$1')
+        console.log(offerId)
+        let cells = offer.match(/<td.*><\/td>/g)
+        console.log(cells)
+    }
+    return offers
+}
+
+async function getOffers(items, serverId) {
+    for (let itemType = 0; itemType < items.length; itemType++) {
+        console.log(items[itemType].type)
+
+        let offers = items[itemType].content
+
+        for (let key in offers) {
+            let offer = offers[key]
+            console.log(offer.link)
+            await fetch(offer.link, { headers: setHeaders(serverId) })
+                .then(res => res.buffer())
+                .then(res => decode(res))
+                .then(res => {
+                    let $ = load(res)
+                    let thead = getOffersHeaders($)
+                    let tbody = getOffersBodies($)
+                })
+                .catch(err => console.error('Что-то пошло не так: ', err));
+        }
+    }
+}
+
 function getMarketItems(serverId) {
+    let server = servers[serverId]
 
     fetch(parseUrl, { headers: setHeaders(serverId) })
         .then(res => res.buffer())
         .then(res => decode(res))
         .then(res => getItems(res))
-        .then(console.log(`<${servers[serverId].name} parsed>`))
+        .then(res => getOffers(res, serverId))
+        .then(console.log(`<${server.name} parsed>`))
         .catch(err => console.error('Что-то пошло не так: ', err));
 }
 

@@ -43,7 +43,7 @@ module.exports = {
             all: '0',
             weapon: 'weapon',
             armor: 'armor',
-            jewelry: 'jewel',
+            jewel: 'jewel',
             recipe: 'recipe',
             book: 'book',
             other: 'other'

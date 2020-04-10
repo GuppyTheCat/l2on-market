@@ -103,7 +103,7 @@ function getOffersBodies($) {
         // console.log(offer)
         let offerId = offer.replace(/<tr\sclass=["']shop-(\d+).*?["']>\n(?:(?:.+\s)+?)<\/tr>/g, '$1')
         console.log(offerId)
-        let cells = offer.match(/<td.*><\/td>/g)
+        let cells = offer.match(/<td.*>.*?<\/td>/g)
         console.log(cells)
     }
     return offers

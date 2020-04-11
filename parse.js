@@ -3,7 +3,10 @@ const fetch = require('node-fetch')
 const iconv = require('iconv-lite')
 const cheerio = require('cheerio')
 const moment = require('moment')
-const { filters, servers } = require('./constants')
+const {
+    filters,
+    servers
+} = require('./constants')
 
 let parseUrl = 'http://l2on.net/?c=market&a=pulse&q=&type=0'
 
@@ -55,7 +58,9 @@ function htmlToJson(html) {
 }
 
 function load(html) {
-    return cheerio.load(html, { decodeEntities: false })
+    return cheerio.load(html, {
+        decodeEntities: false
+    })
 }
 
 function getItems(html) {
@@ -91,7 +96,7 @@ function getOffersHeaders($) {
         .split("\n")
     headers.pop()
     headers.shift()
-    console.log(headers)
+    /* console.log(headers) */
     return headers
 }
 
@@ -99,42 +104,107 @@ function getOffersBodies($) {
     let offers = $('#group_sell').find('tbody').html()
         .match(/<tr\sclass=["']shop-(?:\d+).*?["']>\s(?:(?:.+\s)+?)<\/tr>/g)
     // console.log(offers)
+    let result = []
     for (let offer of offers) {
-        // console.log(offer)
         let offerId = offer.replace(/<tr\sclass=["']shop-(\d+).*?["']>\n(?:(?:.+\s)+?)<\/tr>/g, '$1')
-        console.log(offerId)
+        /* console.log(offerId) */
         let cells = offer.match(/<td.*>.*?<\/td>/g)
-        console.log(cells)
+        /* console.log(cells) */
+        result.push({
+            offerId,
+            cells
+        })
     }
-    return offers
+    return result
 }
 
-async function getOffers(items, serverId) {
+function getOffers(items, serverId) {
+    let output= []
     for (let itemType = 0; itemType < items.length; itemType++) {
         console.log(items[itemType].type)
 
+        output.push({itemType: items[itemType].type, items:{}})
+
         let offers = items[itemType].content
+
+        /* console.log(offers) */
 
         for (let key in offers) {
             let offer = offers[key]
-            console.log(offer.link)
-            await fetch(offer.link, { headers: setHeaders(serverId) })
+            /* console.log(offer.link) */
+
+            output[itemType].items[key] = {itemId: offer.id, itemName: offer.name, offers : null}
+            fetch(offer.link, {
+                    headers: setHeaders(serverId)
+                })
                 .then(res => res.buffer())
                 .then(res => decode(res))
                 .then(res => {
                     let $ = load(res)
-                    let thead = getOffersHeaders($)
-                    let tbody = getOffersBodies($)
+                    let headers = getOffersHeaders($)
+                    let bodies = getOffersBodies($)
+                    /* console.log(headers, bodies) */
+                    let result = []
+                    for (let item = 0; item < bodies.length; item++) {
+                        result.push({
+                            offerNum: bodies[item].offerId,
+                            fields: []
+                        })
+                        for (let td = 0; td < bodies[item].cells.length; td++) {
+                            let headerTitle = headers[td]
+                            let tdInnerHtml = bodies[item].cells[td]
+                            let cell
+                            switch (headerTitle) {
+                                case 'Персонаж':
+                                    cell = tdInnerHtml.replace(/<td\sclass="nick">(?:<a\shref="http:\/\/l2on.net\/.*?"\sclass="nickname">(.*?)<\/a>)?(?:<span\s.*?>скрыто<\/span>\s<span\sclass="add">.*?<\/span>)?<\/td>/, '$1') ||
+                                        'скрыто'
+                                    break;
+
+                                case 'Цена':
+                                    cell = tdInnerHtml.replace(/<td\s.*?order="(\d+)">.*?<\/td>/, '$1')
+                                    break;
+
+                                case 'Мод.':
+                                    cell = tdInnerHtml.replace(/<td\sclass="right"\sorder="\d+">(?:(\+\d+))?(?:<span\sclass="add">—<\/span>)?<\/td>/, '$1')
+                                    break;
+
+                                case 'Атрибуты':
+                                    cell = tdInnerHtml.replace(/<td\sorder="\d+">(?:<span\s?title=".*?">(.*?)<\/span>)?(?:<span\sclass="add">—<\/span>)?<\/td>/, '$1')
+                                    break;
+
+                                case 'Замечен':
+                                    cell = tdInnerHtml.replace(/<td\s.*?order="(\d+)"><span>(?:.*?)<\/span><\/td>/, '$1')
+                                    break;
+
+                                case 'Город':
+                                    cell = tdInnerHtml.replace(/<td\sclass="town">(?:<span\s.*?>скрыто<\/span>)?(.*?)?<\/td>/, '$1') ||
+                                        'скрыто'
+                                    break;
+
+                            }
+                            result[item].fields.push({
+                                title: headerTitle,
+                                content: cell
+                            })
+                        }
+                    }
+                    /* console.log(output[itemType].items[key]) */
+                    
+                    output[itemType].items[key].offers = result
+                    /* saveResult(JSON.stringify(result), `resultLog`) */
                 })
                 .catch(err => console.error('Что-то пошло не так: ', err));
         }
     }
+    saveResult(JSON.stringify(output), `getOffersOutputLog`)
 }
 
 function getMarketItems(serverId) {
     let server = servers[serverId]
 
-    fetch(parseUrl, { headers: setHeaders(serverId) })
+    fetch(parseUrl, {
+            headers: setHeaders(serverId)
+        })
         .then(res => res.buffer())
         .then(res => decode(res))
         .then(res => getItems(res))

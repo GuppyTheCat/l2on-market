@@ -5,7 +5,8 @@ const cheerio = require('cheerio')
 const moment = require('moment')
 const {
     filters,
-    servers
+    servers,
+    offersRegExp
 } = require('./constants')
 
 let parseUrl = 'http://l2on.net/?c=market&a=pulse&q=&type=0'
@@ -119,11 +120,14 @@ function getOffersBodies($) {
 }
 
 function getOffers(items, serverId) {
-    let output= []
+    let output = []
     for (let itemType = 0; itemType < items.length; itemType++) {
         console.log(items[itemType].type)
 
-        output.push({itemType: items[itemType].type, items:{}})
+        output.push({
+            itemType: items[itemType].type,
+            items: {}
+        })
 
         let offers = items[itemType].content
 
@@ -133,7 +137,11 @@ function getOffers(items, serverId) {
             let offer = offers[key]
             /* console.log(offer.link) */
 
-            output[itemType].items[key] = {itemId: offer.id, itemName: offer.name, offers : null}
+            output[itemType].items[key] = {
+                itemId: offer.id,
+                itemName: offer.name,
+                offers: null
+            }
             fetch(offer.link, {
                     headers: setHeaders(serverId)
                 })
@@ -153,35 +161,8 @@ function getOffers(items, serverId) {
                         for (let td = 0; td < bodies[item].cells.length; td++) {
                             let headerTitle = headers[td]
                             let tdInnerHtml = bodies[item].cells[td]
-                            let cell
-                            switch (headerTitle) {
-                                case 'Персонаж':
-                                    cell = tdInnerHtml.replace(/<td\sclass="nick">(?:<a\shref="http:\/\/l2on.net\/.*?"\sclass="nickname">(.*?)<\/a>)?(?:<span\s.*?>скрыто<\/span>\s<span\sclass="add">.*?<\/span>)?<\/td>/, '$1') ||
-                                        'скрыто'
-                                    break;
+                            let cell = tdInnerHtml.replace(offersRegExp[headerTitle], '$1') || null
 
-                                case 'Цена':
-                                    cell = tdInnerHtml.replace(/<td\s.*?order="(\d+)">.*?<\/td>/, '$1')
-                                    break;
-
-                                case 'Мод.':
-                                    cell = tdInnerHtml.replace(/<td\sclass="right"\sorder="\d+">(?:(\+\d+))?(?:<span\sclass="add">—<\/span>)?<\/td>/, '$1')
-                                    break;
-
-                                case 'Атрибуты':
-                                    cell = tdInnerHtml.replace(/<td\sorder="\d+">(?:<span\s?title=".*?">(.*?)<\/span>)?(?:<span\sclass="add">—<\/span>)?<\/td>/, '$1')
-                                    break;
-
-                                case 'Замечен':
-                                    cell = tdInnerHtml.replace(/<td\s.*?order="(\d+)"><span>(?:.*?)<\/span><\/td>/, '$1')
-                                    break;
-
-                                case 'Город':
-                                    cell = tdInnerHtml.replace(/<td\sclass="town">(?:<span\s.*?>скрыто<\/span>)?(.*?)?<\/td>/, '$1') ||
-                                        'скрыто'
-                                    break;
-
-                            }
                             result[item].fields.push({
                                 title: headerTitle,
                                 content: cell
@@ -189,7 +170,7 @@ function getOffers(items, serverId) {
                         }
                     }
                     /* console.log(output[itemType].items[key]) */
-                    
+
                     output[itemType].items[key].offers = result
                     /* saveResult(JSON.stringify(result), `resultLog`) */
                 })

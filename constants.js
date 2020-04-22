@@ -65,6 +65,7 @@ module.exports = {
     offersRegExp: {
         'Персонаж': /<td\sclass="nick">(?:<a\shref="http:\/\/l2on.net\/.*?"\sclass="nickname">(.*?)<\/a>)?(?:<span\s.*?>скрыто<\/span>\s<span\sclass="add">.*?<\/span>)?<\/td>/,
         'Цена': /<td\s.*?order="(\d+)">.*?<\/td>/,
+        'Кол-во':/<td\s.*?order="(\d+)">.*?<\/td>/,
         'Мод.': /<td\sclass="right"\sorder="\d+">(?:(\+\d+))?(?:<span\sclass="add">—<\/span>)?<\/td>/,
         'Атрибуты': /<td\sorder="\d+">(?:<span\s?title=".*?">(.*?)<\/span>)?(?:<span\sclass="add">—<\/span>)?<\/td>/,
         'Замечен': /<td\s.*?order="(\d+)"><span>(?:.*?)<\/span><\/td>/,

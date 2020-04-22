@@ -119,7 +119,7 @@ function getOffersBodies($) {
     return result
 }
 
-function getOffers(items, serverId) {
+async function getOffers(items, serverId) {
     let output = []
     for (let itemType = 0; itemType < items.length; itemType++) {
         console.log(items[itemType].type)
@@ -140,9 +140,9 @@ function getOffers(items, serverId) {
             output[itemType].items[key] = {
                 itemId: offer.id,
                 itemName: offer.name,
-                offers: null
+                offers: []
             }
-            fetch(offer.link, {
+            await fetch(offer.link, {
                     headers: setHeaders(serverId)
                 })
                 .then(res => res.buffer())
@@ -162,6 +162,7 @@ function getOffers(items, serverId) {
                             let headerTitle = headers[td]
                             let tdInnerHtml = bodies[item].cells[td]
                             let cell = tdInnerHtml.replace(offersRegExp[headerTitle], '$1') || null
+                            // console.log(`${headerTitle}\n${tdInnerHtml}\n${cell}`)
 
                             result[item].fields.push({
                                 title: headerTitle,
@@ -170,14 +171,15 @@ function getOffers(items, serverId) {
                         }
                     }
                     /* console.log(output[itemType].items[key]) */
-
                     output[itemType].items[key].offers = result
-                    /* saveResult(JSON.stringify(result), `resultLog`) */
+                    // console.log(JSON.stringify(output[itemType].items[key].offers))
+                    // saveResult(JSON.stringify(result), `resultLog`)
                 })
                 .catch(err => console.error('Что-то пошло не так: ', err));
         }
     }
-    saveResult(JSON.stringify(output), `getOffersOutputLog`)
+    // saveResult(JSON.stringify(output), `getOffersOutputLog`)
+    return JSON.stringify(output)
 }
 
 function getMarketItems(serverId) {
@@ -190,6 +192,7 @@ function getMarketItems(serverId) {
         .then(res => decode(res))
         .then(res => getItems(res))
         .then(res => getOffers(res, serverId))
+        .then(res => saveResult(res, `getOffersOutputLog`))
         .then(console.log(`<${server.name} parsed>`))
         .catch(err => console.error('Что-то пошло не так: ', err));
 }
